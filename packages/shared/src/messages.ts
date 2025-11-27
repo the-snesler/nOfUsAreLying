@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { PlayerViewStateSchema, RoomConfigSchema } from './types';
+import { ROOM_CODE_LENGTH } from ".";
 
 // Base message envelope
 export const NetworkMessageSchema = z.object({
@@ -14,7 +15,7 @@ export type NetworkMessage = z.infer<typeof NetworkMessageSchema>;
 // === Client -> Server Messages ===
 
 export const JoinRoomPayloadSchema = z.object({
-  roomCode: z.string().length(4),
+  roomCode: z.string().length(ROOM_CODE_LENGTH),
   playerName: z.string().min(1).max(20),
   avatarId: z.number().min(0).max(9),
 });
@@ -22,7 +23,7 @@ export const JoinRoomPayloadSchema = z.object({
 export type JoinRoomPayload = z.infer<typeof JoinRoomPayloadSchema>;
 
 export const ReconnectPayloadSchema = z.object({
-  roomCode: z.string().length(4),
+  roomCode: z.string().length(ROOM_CODE_LENGTH),
   playerId: z.string(),
   token: z.string(),
 });

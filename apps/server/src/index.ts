@@ -44,7 +44,7 @@ const server = Bun.serve<WebSocketData>({
     }
 
     // GET /api/v1/rooms/:code/ws - WebSocket upgrade
-    const wsMatch = path.match(/^\/api\/v1\/rooms\/([A-Z0-9]{4})\/ws$/i);
+    const wsMatch = path.match(/^\/api\/v1\/rooms\/([A-Z0-9]{6})\/ws$/i);
     if (wsMatch && req.method === 'GET') {
       const roomCode = wsMatch[1].toUpperCase();
       const room = getRoom(roomCode);

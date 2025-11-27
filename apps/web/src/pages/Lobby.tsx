@@ -1,16 +1,21 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createRoom } from '../lib/api';
+import { ROOM_CODE_LENGTH } from "@nofus/shared";
 
 export default function Lobby() {
   const navigate = useNavigate();
-  const [roomCode, setRoomCode] = useState('');
+  // inputs
+  const [roomCode, setRoomCode] = useState("");
+  const [playerName, setPlayerName] = useState("");
+  // UI state
   const [isCreating, setIsCreating] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const handleJoin = (e: React.FormEvent) => {
     e.preventDefault();
-    if (roomCode.length === 4) {
+    if (roomCode.length === ROOM_CODE_LENGTH && playerName.trim()) {
+      sessionStorage.setItem(`player_name`, playerName);
       navigate(`/play/${roomCode.toUpperCase()}`);
     }
   };
@@ -24,7 +29,7 @@ export default function Lobby() {
       sessionStorage.setItem(`host_token_${roomCode}`, hostToken);
       navigate(`/host/${roomCode}`);
     } catch (err) {
-      setError('Failed to create room');
+      setError("Failed to create room");
     } finally {
       setIsCreating(false);
     }
@@ -38,18 +43,34 @@ export default function Lobby() {
         </h1>
 
         <form onSubmit={handleJoin} className="mb-6">
-          <label className="block text-gray-300 mb-2">Room Code</label>
-          <input
-            type="text"
-            value={roomCode}
-            onChange={(e) => setRoomCode(e.target.value.toUpperCase())}
-            maxLength={4}
-            placeholder="ABCD"
-            className="w-full px-4 py-3 rounded bg-gray-700 text-white text-center text-2xl tracking-widest uppercase"
-          />
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-gray-300 mb-2">Code</label>
+              <input
+                type="text"
+                value={roomCode}
+                onChange={(e) => setRoomCode(e.target.value.toUpperCase())}
+                maxLength={ROOM_CODE_LENGTH}
+                placeholder="67ABCD"
+                className="w-full px-4 py-3 rounded bg-gray-700 text-white text-center text-2xl tracking-widest uppercase mb-4"
+              />
+            </div>
+            <div>
+              <label className="block text-gray-300 mb-2">Name</label>
+              <input
+                type="text"
+                value={playerName}
+                onChange={(e) => setPlayerName(e.target.value)}
+                placeholder="Your Name"
+                className="w-full px-4 py-3 rounded bg-gray-700 text-white text-center text-2xl"
+              />
+            </div>
+          </div>
           <button
             type="submit"
-            disabled={roomCode.length !== 4}
+            disabled={
+              roomCode.length !== ROOM_CODE_LENGTH || !playerName.trim()
+            }
             className="w-full mt-4 px-4 py-3 bg-blue-600 text-white rounded font-semibold hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Join Game
@@ -60,15 +81,13 @@ export default function Lobby() {
           <button
             onClick={handleCreate}
             disabled={isCreating}
-            className="w-full px-4 py-3 bg-green-600 text-white rounded font-semibold hover:bg-green-700 disabled:opacity-50"
+            className="w-full px-4 py-3 bg-green-600 cursor-pointer text-white rounded font-semibold hover:bg-green-700 disabled:opacity-50"
           >
-            {isCreating ? 'Creating...' : 'Create Room'}
+            {isCreating ? "Creating..." : "Create Room"}
           </button>
         </div>
 
-        {error && (
-          <p className="mt-4 text-red-400 text-center">{error}</p>
-        )}
+        {error && <p className="mt-4 text-red-400 text-center">{error}</p>}
       </div>
     </div>
   );

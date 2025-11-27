@@ -5,7 +5,7 @@ export * from './types';
 export * from './messages';
 
 // Constants
-export const ROOM_CODE_LENGTH = 4;
+export const ROOM_CODE_LENGTH = 6;
 export const MIN_PLAYERS = 3;
 export const MAX_PLAYERS = 12;
 
