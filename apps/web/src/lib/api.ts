@@ -7,9 +7,9 @@ export interface CreateRoomResponse {
 
 export async function createRoom(): Promise<CreateRoomResponse> {
   const response = await fetch(`${API_BASE}/rooms`, {
-    method: 'POST',
+    method: "POST",
     headers: {
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
     },
   });
 

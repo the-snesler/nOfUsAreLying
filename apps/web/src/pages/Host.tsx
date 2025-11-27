@@ -12,12 +12,15 @@ export default function Host() {
 
   const { isConnected, sendMessage } = useWebSocket({
     roomCode: code!,
-    role: 'host',
     token: hostToken!,
     onMessage: (message) => {
       // Forward messages to state machine
       const payload = message.payload as Record<string, unknown> | undefined;
-      send({ type: message.type, ...payload, senderId: message.senderId } as Parameters<typeof send>[0]);
+      send({
+        type: message.type,
+        ...payload,
+        senderId: message.senderId,
+      } as Parameters<typeof send>[0]);
     },
   });
 
@@ -33,7 +36,9 @@ export default function Host() {
       <div className="min-h-screen flex items-center justify-center bg-gray-900">
         <div className="text-white text-center">
           <h1 className="text-2xl font-bold mb-4">Invalid Host Session</h1>
-          <p className="text-gray-400">Please create a new room from the lobby.</p>
+          <p className="text-gray-400">
+            Please create a new room from the lobby.
+          </p>
         </div>
       </div>
     );
@@ -44,8 +49,10 @@ export default function Host() {
       <div className="max-w-4xl mx-auto">
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-3xl font-bold text-white">Room: {code}</h1>
-          <div className={`px-3 py-1 rounded text-sm ${isConnected ? 'bg-green-600' : 'bg-red-600'} text-white`}>
-            {isConnected ? 'Connected' : 'Disconnected'}
+          <div
+            className={`px-3 py-1 rounded text-sm ${isConnected ? "bg-green-600" : "bg-red-600"} text-white`}
+          >
+            {isConnected ? "Connected" : "Connecting..."}
           </div>
         </div>
 
@@ -54,10 +61,17 @@ export default function Host() {
             Phase: {state.value.toString()}
           </h2>
 
-          {/* TODO: Render phase-specific UI */}
-          <p className="text-gray-400">
-            Game state machine is running. Players can join with code: <strong>{code}</strong>
-          </p>
+          {state.matches("lobby") && (
+            <div>
+              <ul>
+                {Object.values(state.context.players).map((player) => (
+                  <li key={player.id} className="text-white mb-2">
+                    {player.name}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
         </div>
       </div>
     </div>

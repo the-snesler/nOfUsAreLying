@@ -16,7 +16,6 @@ export default function Player() {
 
   const { isConnected } = useWebSocket({
     roomCode: code!,
-    role: "player",
     playerName: existingPlayerName!,
     playerId: existingPlayerId || undefined,
     token: existingToken || undefined,
@@ -41,8 +40,10 @@ export default function Player() {
       <div className="max-w-md mx-auto">
         <div className="flex justify-between items-center mb-4">
           <h1 className="text-xl font-bold text-white">Room: {code}</h1>
-          <div className={`px-2 py-1 rounded text-xs ${isConnected ? 'bg-green-600' : 'bg-red-600'} text-white`}>
-            {isConnected ? 'Connected' : 'Reconnecting...'}
+          <div
+            className={`px-2 py-1 rounded text-xs ${isConnected ? "bg-green-600" : "bg-red-600"} text-white`}
+          >
+            {isConnected ? "Connected" : "Connecting..."}
           </div>
         </div>
 
