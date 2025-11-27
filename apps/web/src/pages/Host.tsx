@@ -1,8 +1,10 @@
-import { useParams } from 'react-router-dom';
-import { useEffect } from 'react';
-import { useMachine } from '@xstate/react';
-import { gameMachine } from '../machines/gameMachine';
-import { useWebSocket } from '../hooks/useWebSocket';
+import { useParams } from "react-router-dom";
+import { useEffect } from "react";
+import { useMachine } from "@xstate/react";
+import { gameMachine } from "../machines/gameMachine";
+import { useWebSocket } from "../hooks/useWebSocket";
+import { PlayerViewState } from "@nofus/shared";
+import { machineStateToPlayerViewState } from "../lib/api";
 
 export default function Host() {
   const { code } = useParams<{ code: string }>();
@@ -24,10 +26,17 @@ export default function Host() {
     },
   });
 
-  // Broadcast state changes to players
+  // Send state changes to players
   useEffect(() => {
     if (isConnected) {
-      // TODO: Send SYNC_STATE to all players when state changes
+      for (const target of Object.keys(state.context.players)) {
+        const payload = machineStateToPlayerViewState(state, target);
+        sendMessage({
+          type: "SYNC_STATE",
+          target,
+          payload,
+        });
+      }
     }
   }, [state, isConnected, sendMessage]);
 
@@ -60,7 +69,7 @@ export default function Host() {
           <h2 className="text-xl font-semibold mb-4">
             Phase: {state.value.toString()}
           </h2>
-          <pre>{JSON.stringify(state.context, null, 2)}</pre>
+          <pre>{JSON.stringify(state, null, 2)}</pre>
         </div>
       </div>
     </div>
