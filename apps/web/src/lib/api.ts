@@ -90,7 +90,9 @@ export function machineStateToPlayerViewState(
     if (!currentRound) return response;
 
     const isExpert = currentRound.targetPlayerId === playerId;
-    const hasSubmittedLie = currentRound.lies[playerId] !== undefined;
+    const hasSubmittedLie = isExpert
+      ? state.context.expertReady
+      : currentRound.lies[playerId] !== undefined;
     const hasVoted = currentRound.votes[playerId] !== undefined;
 
     // Build answers list if we have shuffled ids

@@ -2,12 +2,16 @@ import type { Article } from "@nofus/shared";
 
 interface PresentingPhaseProps {
   isExpert: boolean;
+  isVIP: boolean;
   currentArticle?: Article;
+  onContinue?: () => void;
 }
 
 export default function PresentingPhase({
   isExpert,
+  isVIP,
   currentArticle,
+  onContinue,
 }: PresentingPhaseProps) {
   return (
     <div className="flex flex-col gap-6 text-center">
@@ -37,6 +41,15 @@ export default function PresentingPhase({
             {currentArticle?.extract}
           </p>
         </div>
+      )}
+
+      {isVIP && onContinue && (
+        <button
+          onClick={onContinue}
+          className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-lg transition-colors text-lg mt-4"
+        >
+          Continue to Voting
+        </button>
       )}
     </div>
   );

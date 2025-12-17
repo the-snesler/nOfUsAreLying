@@ -25,6 +25,8 @@ interface GameContext {
   rounds: Round[];
   currentPresentingPlayerId: string | null;
   systemArticles: Article[]; // For "everyone lies" rounds
+  expertReady: boolean; // Hide expert identity during guessing
+  expertReadyTimer: number | null; // Delay expert "ready" status
 }
 
 // Event types that the machine can receive
@@ -210,6 +212,28 @@ export const gameMachine = setup({
           i === context.currentRoundIndex ? updatedRound : r,
         );
       },
+      expertReadyTimer: ({ context, event }) => {
+        if (event.type !== "SUBMIT_LIE") return context.expertReadyTimer;
+        if (context.expertReady || context.expertReadyTimer !== null)
+          return context.expertReadyTimer;
+
+        const currentRound = context.rounds[context.currentRoundIndex];
+        if (!currentRound) return null;
+
+        const connectedPlayers = Object.values(context.players).filter(
+          (p) => p.isConnected,
+        );
+        const liarsCount = connectedPlayers.filter(
+          (p) => p.id !== currentRound.targetPlayerId,
+        ).length;
+        const submittedCount = Object.keys(currentRound.lies).length + 1; // +1 for the current submission
+
+        // Auto-submit expert summary 10 seconds after half of non-experts submit
+        if (submittedCount >= Math.ceil(liarsCount / 2)) {
+          return 10;
+        }
+        return null;
+      },
     }),
 
     markTrue: assign({
@@ -375,6 +399,12 @@ export const gameMachine = setup({
         const currentRound = context.rounds[context.currentRoundIndex];
         return currentRound?.targetPlayerId || null;
       },
+      expertReady: ({ context }) => {
+        const currentRound = context.rounds[context.currentRoundIndex];
+        // If it's "everyone lies", there is no expert to wait for
+        return currentRound?.isEveryoneLies || false;
+      },
+      expertReadyTimer: () => null,
     }),
 
     nextRound: assign({
@@ -397,9 +427,21 @@ export const gameMachine = setup({
       timer: ({ context }) => context.config.voteTimeSeconds,
     }),
 
+    setRevealTimer: assign({
+      timer: () => 15, // 15 seconds for reveal
+    }),
+
     tickTimer: assign({
       timer: ({ context }) =>
         context.timer !== null ? Math.max(0, context.timer - 1) : null,
+      expertReadyTimer: ({ context }) => {
+        if (context.expertReadyTimer === null) return null;
+        return Math.max(0, context.expertReadyTimer - 1);
+      },
+      expertReady: ({ context }) => {
+        if (context.expertReady) return true;
+        return context.expertReadyTimer === 0;
+      },
     }),
 
     clearTimer: assign({
@@ -474,9 +516,12 @@ export const gameMachine = setup({
         (p) => p.id !== currentRound.targetPlayerId,
       );
 
-      return playersWhoShouldLie.every(
+      const allLiesSubmitted = playersWhoShouldLie.every(
         (player) => currentRound.lies[player.id] !== undefined,
       );
+
+      // Also wait for the fake expert "ready" status to hide their identity
+      return allLiesSubmitted && context.expertReady;
     },
 
     allPlayersVoted: ({ context }) => {
@@ -523,6 +568,8 @@ export const gameMachine = setup({
     rounds: [],
     currentPresentingPlayerId: null,
     systemArticles: [],
+    expertReady: false,
+    expertReadyTimer: null,
   },
   states: {
     lobby: {
@@ -633,6 +680,7 @@ export const gameMachine = setup({
         TIMER_TICK: {
           actions: "tickTimer",
         },
+        TIMER_END: "voting",
         NEXT_PHASE: "voting",
       },
     },
@@ -658,8 +706,22 @@ export const gameMachine = setup({
     },
 
     reveal: {
-      entry: ["clearTimer", "calculateScores"],
+      entry: ["setRevealTimer", "calculateScores"],
       on: {
+        TIMER_TICK: {
+          actions: "tickTimer",
+        },
+        TIMER_END: [
+          {
+            target: "guessing",
+            guard: "hasMoreGuessingRounds",
+            actions: "nextRound",
+          },
+          {
+            target: "leaderboard",
+            guard: "allRoundsComplete",
+          },
+        ],
         NEXT_PHASE: [
           {
             target: "guessing",

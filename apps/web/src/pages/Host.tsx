@@ -97,6 +97,7 @@ export default function Host() {
         <GuessingPhase
           players={state.context.players}
           currentRound={state.context.rounds[state.context.currentRoundIndex]}
+          expertReady={state.context.expertReady}
         />
       )}
       {state.matches("presenting") && (

@@ -4,25 +4,24 @@ import PhaseProgress from "../components/PhaseProgress";
 interface GuessingPhaseProps {
   players: Record<string, Player>;
   currentRound?: Round;
+  expertReady: boolean;
 }
 
 export default function GuessingPhase({
   players,
   currentRound,
+  expertReady,
 }: GuessingPhaseProps) {
   if (!currentRound) return null;
 
-  const expert = players[currentRound.targetPlayerId];
-
   const playerStatus = Object.keys(players).reduce(
     (acc, playerId) => {
-      // Expert is always "ready"
-      if (playerId === currentRound.targetPlayerId) {
-        acc[playerId] = "ready";
-      } else {
-        const hasSubmitted = currentRound.lies[playerId] !== undefined;
-        acc[playerId] = hasSubmitted ? "ready" : "waiting";
-      }
+      const isExpert = playerId === currentRound.targetPlayerId;
+      const hasSubmitted = isExpert
+        ? expertReady
+        : currentRound.lies[playerId] !== undefined;
+
+      acc[playerId] = hasSubmitted ? "ready" : "waiting";
       return acc;
     },
     {} as Record<string, "waiting" | "ready" | "presenting" | "voted">,
@@ -41,8 +40,7 @@ export default function GuessingPhase({
 
       <div className="bg-gray-700/50 rounded-xl p-4 border border-gray-600">
         <p className="text-center text-gray-300">
-          <span className="font-bold text-white">{expert?.name}</span> is the
-          expert. Everyone else, write a convincing summary!
+          One of you is the expert. Everyone else, write a convincing summary!
         </p>
       </div>
 

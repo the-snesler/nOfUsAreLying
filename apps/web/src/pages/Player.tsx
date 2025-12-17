@@ -150,7 +150,9 @@ export default function Player() {
           {gameState.phase === "PRESENTING" && (
             <PresentingPhase
               isExpert={gameState.isExpert || false}
+              isVIP={gameState.players[gameState.playerId]?.isVip || false}
               currentArticle={gameState.currentArticle}
+              onContinue={handleContinue}
             />
           )}
           {gameState.phase === "VOTING" && (
@@ -176,7 +178,12 @@ export default function Player() {
               }
             />
           )}
-          {gameState.phase === "REVEAL" && <RevealPhase />}
+          {gameState.phase === "REVEAL" && (
+            <RevealPhase
+              isVIP={gameState.players[gameState.playerId]?.isVip || false}
+              onContinue={handleContinue}
+            />
+          )}
           {gameState.phase === "LEADERBOARD" && (
             <LeaderboardPhase
               playerId={gameState.playerId}
