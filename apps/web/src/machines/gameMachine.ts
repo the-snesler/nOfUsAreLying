@@ -54,6 +54,17 @@ export const gameMachine = setup({
     addPlayer: assign({
       players: ({ context, event }) => {
         if (event.type !== "PLAYER_CONNECTED") return context.players;
+        
+        // reconnect, preserve existing properties
+        const existingPlayer = context.players[event.playerId];
+        if (existingPlayer) {
+          return {
+            ...context.players,
+            [event.playerId]: { ...existingPlayer, isConnected: true },
+          };
+        }
+        
+        // new player, create from scratch
         const isFirst = Object.keys(context.players).length === 0;
         const newPlayer: Player = {
           id: event.playerId,
