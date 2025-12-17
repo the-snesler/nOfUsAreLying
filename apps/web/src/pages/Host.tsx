@@ -4,7 +4,6 @@ import { useMachine } from "@xstate/react";
 import { gameMachine } from "../machines/gameMachine";
 import { useWebSocket } from "../hooks/useWebSocket";
 import { useTimer } from "../hooks/useTimer";
-import { useArticleFetcher } from "../hooks/useArticleFetcher";
 import { machineStateToPlayerViewState } from "../lib/api";
 import HostLayout from "../components/host/HostLayout";
 import LobbyPhase from "../components/host/phases/LobbyPhase";
@@ -42,20 +41,6 @@ export default function Host() {
     state.context.timer,
     () => send({ type: "TIMER_TICK" }),
     () => send({ type: "TIMER_END" })
-  );
-
-  // Article fetching
-  useArticleFetcher(
-    state.context.players,
-    state.context.articleOptions,
-    state.value === "topicSelection",
-    (playerId, articles) => {
-      send({
-        type: "PROVIDE_ARTICLES",
-        playerId,
-        articles,
-      });
-    }
   );
 
   // Send state changes to players

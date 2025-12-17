@@ -1,5 +1,6 @@
-import { setup, assign, and } from "xstate";
+import { setup, assign, and, fromPromise } from "xstate";
 import type { Player, Article, Round, RoomConfig } from "@nofus/shared";
+import { fetchArticlesForPlayer } from "../lib/wikipedia";
 
 // Scoring constants
 const POINTS_FOR_FOOLING = 700;
@@ -17,6 +18,7 @@ interface GameContext {
   articleOptions: Record<string, Article[]>; // playerId -> 6 articles (first 3 shown, reroll shows next 3)
   selectedArticles: Record<string, Article[]>; // playerId -> chosen articles (up to 3)
   hasRerolled: Record<string, boolean>; // Track who has rerolled in current research round
+  articleFetchStatus: Record<string, boolean>; // Track which players have pending/completed fetches
 
   // Rounds
   currentRoundIndex: number;
@@ -49,6 +51,12 @@ export const gameMachine = setup({
   types: {
     context: {} as GameContext,
     events: {} as GameEvent,
+  },
+  actors: {
+    fetchArticles: fromPromise(async ({ input }: { input: { playerId: string } }) => {
+      const articles = await fetchArticlesForPlayer(6);
+      return { playerId: input.playerId, articles };
+    }),
   },
   actions: {
     addPlayer: assign({
@@ -95,7 +103,40 @@ export const gameMachine = setup({
         if (event.type !== "PROVIDE_ARTICLES") return context.articleOptions;
         return { ...context.articleOptions, [event.playerId]: event.articles };
       },
+      articleFetchStatus: ({ context, event }) => {
+        if (event.type !== "PROVIDE_ARTICLES") return context.articleFetchStatus;
+        return { ...context.articleFetchStatus, [event.playerId]: true };
+      },
     }),
+
+    markArticleFetching: assign({
+      articleFetchStatus: ({ context }, params: { playerId: string }) => {
+        return { ...context.articleFetchStatus, [params.playerId]: true };
+      },
+    }),
+
+    fetchArticlesForPlayers: ({ context, self }) => {
+      // Find players who need articles (not already fetched/fetching)
+      const playersNeedingArticles = Object.keys(context.players).filter(
+        (playerId) => !context.articleOptions[playerId] && !context.articleFetchStatus[playerId]
+      );
+
+      // Fetch articles for each player concurrently
+      playersNeedingArticles.forEach((playerId) => {
+        // Mark as fetching immediately to prevent duplicate requests
+        context.articleFetchStatus[playerId] = true;
+
+        fetchArticlesForPlayer(6)
+          .then((articles) => {
+            self.send({ type: "PROVIDE_ARTICLES", playerId, articles });
+          })
+          .catch((error) => {
+            console.error(`Failed to fetch articles for ${playerId}:`, error);
+            // Reset status on error so it can be retried
+            delete context.articleFetchStatus[playerId];
+          });
+      });
+    },
 
     rerollArticles: assign({
       hasRerolled: ({ context, event }) => {
@@ -397,6 +438,7 @@ export const gameMachine = setup({
     articleOptions: {},
     selectedArticles: {},
     hasRerolled: {},
+    articleFetchStatus: {},
     currentRoundIndex: 0,
     rounds: [],
     currentPresentingPlayerId: null,
@@ -424,7 +466,7 @@ export const gameMachine = setup({
     },
 
     topicSelection: {
-      entry: "setResearchTimer",
+      entry: ["setResearchTimer", "fetchArticlesForPlayers"],
       on: {
         PROVIDE_ARTICLES: {
           actions: "provideArticles",
