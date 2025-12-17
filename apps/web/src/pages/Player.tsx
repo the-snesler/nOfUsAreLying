@@ -37,7 +37,7 @@ export default function Player() {
         sessionStorage.setItem(`player_id_${code}`, payload.playerId as string);
         sessionStorage.setItem(
           `player_token_${code}`,
-          payload.reconnectToken as string
+          payload.reconnectToken as string,
         );
       } else if (message.type === "SYNC_STATE") {
         setGameState(payload as unknown as PlayerViewState);
@@ -177,7 +177,12 @@ export default function Player() {
             />
           )}
           {gameState.phase === "REVEAL" && <RevealPhase />}
-          {gameState.phase === "LEADERBOARD" && <LeaderboardPhase />}
+          {gameState.phase === "LEADERBOARD" && (
+            <LeaderboardPhase
+              playerId={gameState.playerId}
+              players={gameState.players}
+            />
+          )}
         </>
       )}
     </PlayerLayout>
