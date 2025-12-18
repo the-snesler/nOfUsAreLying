@@ -71,18 +71,6 @@ export default function Host() {
     }
   }, []);
 
-  // Cleanup actor on unmount
-  useEffect(() => {
-    return () => {
-      if (actorRef.current) {
-        actorRef.current.stop();
-      }
-      if (recoveryTimeoutRef.current) {
-        clearTimeout(recoveryTimeoutRef.current);
-      }
-    };
-  }, []);
-
   const { isConnected, sendMessage } = useWebSocket({
     roomCode: code!,
     token: hostToken!,
@@ -115,7 +103,6 @@ export default function Host() {
           setRecoveryState({ status: "not_needed" });
           initializeActor();
         }
-        return;
       }
 
       // Handle state recovery response

@@ -497,9 +497,9 @@ export const gameMachine = setup({
       return player?.isVip || false;
     },
 
-    hasMoreResearchRounds: ({ context }) => context.researchRoundIndex < 2,
+    hasMoreResearchRounds: ({ context }) => context.researchRoundIndex < context.config.articlesPerPlayer - 1,
 
-    researchComplete: ({ context }) => context.researchRoundIndex >= 2,
+    researchComplete: ({ context }) => context.researchRoundIndex >= context.config.articlesPerPlayer - 1,
 
     hasMoreGuessingRounds: ({ context }) =>
       context.currentRoundIndex < context.rounds.length - 1,
