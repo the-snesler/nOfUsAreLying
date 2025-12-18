@@ -35,4 +35,5 @@ pnpm-debug.log*
 coverage/
 
 docs/
+CLAUDE.md
 *.tsbuildinfo
