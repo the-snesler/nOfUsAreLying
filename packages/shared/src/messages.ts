@@ -68,6 +68,17 @@ export const PlayerConnectedPayloadSchema = z.object({
 
 export type PlayerConnectedPayload = z.infer<typeof PlayerConnectedPayloadSchema>;
 
+export const HostConnectedPayloadSchema = z.object({
+  players: z.array(
+    z.object({
+      id: z.string(),
+      name: z.string(),
+    }),
+  ),
+});
+
+export type HostConnectedPayload = z.infer<typeof HostConnectedPayloadSchema>;
+
 export const PlayerDisconnectedPayloadSchema = z.object({
   playerId: z.string(),
 });
@@ -117,7 +128,9 @@ export type RerollArticlesPayload = z.infer<typeof RerollArticlesPayloadSchema>;
 
 // === Host -> Player Messages (Relayed) ===
 
-export const SyncStatePayloadSchema = PlayerViewStateSchema;
+export const SyncStatePayloadSchema = PlayerViewStateSchema.extend({
+  encryptedHostState: z.string().optional(), // Full host state encrypted with hostToken
+});
 
 export type SyncStatePayload = z.infer<typeof SyncStatePayloadSchema>;
 
@@ -126,6 +139,18 @@ export const SetVipPayloadSchema = z.object({
 });
 
 export type SetVipPayload = z.infer<typeof SetVipPayloadSchema>;
+
+// === Host Recovery Messages ===
+
+export const RequestStateRecoveryPayloadSchema = z.object({});
+
+export type RequestStateRecoveryPayload = z.infer<typeof RequestStateRecoveryPayloadSchema>;
+
+export const ProvideStateRecoveryPayloadSchema = z.object({
+  encryptedHostState: z.string(),
+});
+
+export type ProvideStateRecoveryPayload = z.infer<typeof ProvideStateRecoveryPayloadSchema>;
 
 // === Message Type Constants ===
 
@@ -140,6 +165,7 @@ export const MessageTypes = {
   ROOM_JOINED: 'ROOM_JOINED',
   ERROR: 'ERROR',
   PLAYER_CONNECTED: 'PLAYER_CONNECTED',
+  HOST_CONNECTED: 'HOST_CONNECTED',
   PLAYER_DISCONNECTED: 'PLAYER_DISCONNECTED',
 
   // Player -> Host (Relayed)
@@ -154,6 +180,14 @@ export const MessageTypes = {
   // Host -> Player (Relayed)
   SYNC_STATE: 'SYNC_STATE',
   SET_VIP: 'SET_VIP',
+
+  // State Recovery
+  REQUEST_STATE_RECOVERY: 'REQUEST_STATE_RECOVERY',
+  PROVIDE_STATE_RECOVERY: 'PROVIDE_STATE_RECOVERY',
+
+  // Internal/Other
+  NEXT_PHASE: 'NEXT_PHASE',
+  MARK_TRUE: 'MARK_TRUE',
 } as const;
 
 export type MessageType = typeof MessageTypes[keyof typeof MessageTypes];

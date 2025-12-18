@@ -20,6 +20,7 @@ export default function Player() {
   const [gameState, setGameState] = useState<PlayerViewState | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [hasRerolled, setHasRerolled] = useState(false);
+  const [encryptedHostState, setEncryptedHostState] = useState<string | null>(null);
 
   // Check for existing session
   const existingPlayerName = sessionStorage.getItem(`player_name`);
@@ -40,7 +41,22 @@ export default function Player() {
           payload.reconnectToken as string,
         );
       } else if (message.type === "SYNC_STATE") {
-        setGameState(payload as unknown as PlayerViewState);
+        const statePayload = payload as unknown as PlayerViewState & { encryptedHostState?: string };
+        setGameState(statePayload);
+        // Store encrypted host state for recovery
+        if (statePayload.encryptedHostState) {
+          setEncryptedHostState(statePayload.encryptedHostState);
+        }
+      } else if (message.type === "REQUEST_STATE_RECOVERY") {
+        // Host is requesting state recovery - send our stored encrypted state
+        if (encryptedHostState) {
+          console.log("Providing state recovery to host");
+          sendMessage({
+            type: "PROVIDE_STATE_RECOVERY",
+            target: "HOST",
+            payload: { encryptedHostState },
+          });
+        }
       } else if (message.type === "ERROR") {
         setError(payload.message as string);
       }

@@ -29,6 +29,16 @@ export function handleOpen(ws: ServerWebSocket<WebSocketData>): void {
   if (role === 'host') {
     setHostSocket(roomCode, ws);
     console.log(`Host connected to room ${roomCode}`);
+    ws.send(JSON.stringify({
+      type: MessageTypes.HOST_CONNECTED,
+      payload: {
+        players: Array.from(room.players.values()).map((p) => ({
+          id: p.id,
+          name: p.name,
+        })),
+      },
+      senderId: 'HOST',
+    }));
   } else if (role === 'player' && playerId) {
     const player = getPlayer(roomCode, playerId);
     if (player) {

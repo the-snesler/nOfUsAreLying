@@ -34,6 +34,7 @@ type GameEvent =
   | { type: "START_GAME"; senderId: string }
   | { type: "PLAYER_CONNECTED"; playerId: string; playerName: string }
   | { type: "PLAYER_DISCONNECTED"; playerId: string }
+  | { type: "HOST_CONNECTED"; players: { id: string; name: string }[] }
   | { type: "PROVIDE_ARTICLES"; playerId: string; articles: Article[] }
   | { type: "REROLL_ARTICLES"; senderId: string }
   | { type: "CHOOSE_ARTICLE"; senderId: string; articleId: string }
@@ -607,15 +608,17 @@ export const gameMachine = setup({
     expertReady: false,
     expertReadyTimer: null,
   },
+  on: {
+    PLAYER_CONNECTED: {
+      actions: "addPlayer",
+    },
+    PLAYER_DISCONNECTED: {
+      actions: "disconnectPlayer",
+    }
+  },
   states: {
     lobby: {
       on: {
-        PLAYER_CONNECTED: {
-          actions: "addPlayer",
-        },
-        PLAYER_DISCONNECTED: {
-          actions: "disconnectPlayer",
-        },
         START_GAME: {
           target: "tutorial",
           guard: and(["senderIsVIP", "enoughPlayers"]),

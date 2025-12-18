@@ -4,6 +4,9 @@ export * from './types';
 // Messages
 export * from './messages';
 
+// Crypto
+export * from './crypto';
+
 // Constants
 export const ROOM_CODE_LENGTH = 6;
 export const MIN_PLAYERS = 3;
