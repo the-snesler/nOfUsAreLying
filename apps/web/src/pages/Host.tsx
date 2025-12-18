@@ -102,6 +102,7 @@ export default function Host() {
       )}
       {state.matches("presenting") && (
         <PresentingPhase
+          players={state.context.players}
           currentRound={state.context.rounds[state.context.currentRoundIndex]}
         />
       )}
@@ -109,6 +110,7 @@ export default function Host() {
         <VotingPhase
           players={state.context.players}
           currentRound={state.context.rounds[state.context.currentRoundIndex]}
+          expertReady={state.context.expertReady}
         />
       )}
       {state.matches("reveal") && (

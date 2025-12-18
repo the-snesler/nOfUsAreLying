@@ -152,12 +152,14 @@ export default function Player() {
               isExpert={gameState.isExpert || false}
               isVIP={gameState.players[gameState.playerId]?.isVip || false}
               currentArticle={gameState.currentArticle}
+              mySubmission={gameState.mySubmission}
               onContinue={handleContinue}
             />
           )}
           {gameState.phase === "VOTING" && (
             <VotingPhase
               playerId={gameState.playerId}
+              players={gameState.players}
               isExpert={gameState.isExpert || false}
               answers={gameState.answers || []}
               hasVoted={gameState.hasVoted || false}

@@ -77,7 +77,7 @@ export default function RevealPhase({
               {votes.length > 0 && (
                 <div className="flex flex-wrap gap-2 items-center">
                   <span className="text-xs font-bold text-gray-500 uppercase">
-                    Fooled:
+                    {isExpert ? "Correct:" : "Fooled:"}
                   </span>
                   {votes.map(([voterId]) => (
                     <span

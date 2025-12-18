@@ -1,10 +1,12 @@
-import type { Round } from "@nofus/shared";
+import type { Player, Round } from "@nofus/shared";
 
 interface PresentingPhaseProps {
+  players: Record<string, Player>;
   currentRound?: Round;
 }
 
 export default function PresentingPhase({
+  players,
   currentRound,
 }: PresentingPhaseProps) {
   if (!currentRound || !currentRound.shuffledAnswerIds) return null;
@@ -27,6 +29,8 @@ export default function PresentingPhase({
               ? currentRound.article.summary
               : currentRound.lies[playerId];
 
+          const writer = players[playerId];
+
           return (
             <div
               key={playerId}
@@ -35,6 +39,9 @@ export default function PresentingPhase({
               <div className="flex justify-between items-start">
                 <span className="bg-gray-600 text-white text-xs font-bold px-2 py-1 rounded">
                   Option {index + 1}
+                </span>
+                <span className="text-xs font-bold text-gray-400 uppercase">
+                  {writer?.name || "System"}
                 </span>
               </div>
               <p className="text-xl font-medium leading-relaxed italic">

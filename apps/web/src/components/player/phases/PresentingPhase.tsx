@@ -4,6 +4,7 @@ interface PresentingPhaseProps {
   isExpert: boolean;
   isVIP: boolean;
   currentArticle?: Article;
+  mySubmission?: string;
   onContinue?: () => void;
 }
 
@@ -11,6 +12,7 @@ export default function PresentingPhase({
   isExpert,
   isVIP,
   currentArticle,
+  mySubmission,
   onContinue,
 }: PresentingPhaseProps) {
   return (
@@ -30,7 +32,7 @@ export default function PresentingPhase({
           Your Summary:
         </p>
         <p className="text-xl italic text-white leading-relaxed">
-          "{currentArticle?.summary}"
+          "{mySubmission || currentArticle?.summary}"
         </p>
       </div>
 

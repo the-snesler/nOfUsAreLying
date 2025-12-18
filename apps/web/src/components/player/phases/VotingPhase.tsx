@@ -1,7 +1,9 @@
+import type { Player } from "@nofus/shared";
 import SubmissionConfirm from "../components/SubmissionConfirm";
 
 interface VotingPhaseProps {
   playerId: string;
+  players: Record<string, Player>;
   isExpert: boolean;
   answers: { id: string; text: string }[];
   hasVoted: boolean;
@@ -12,6 +14,7 @@ interface VotingPhaseProps {
 
 export default function VotingPhase({
   playerId,
+  players,
   isExpert,
   answers,
   hasVoted,
@@ -46,6 +49,7 @@ export default function VotingPhase({
             if (answer.id === playerId) return null; // Don't mark yourself
 
             const isMarked = markedTrue.includes(answer.id);
+            const writer = players[answer.id];
 
             return (
               <div
@@ -56,7 +60,12 @@ export default function VotingPhase({
                     : "bg-gray-800 border-gray-700"
                 }`}
               >
-                <p className="text-white italic">"{answer.text}"</p>
+                <div className="flex justify-between items-start">
+                  <p className="text-white italic">"{answer.text}"</p>
+                  <span className="text-[10px] font-bold text-gray-500 uppercase ml-2 shrink-0">
+                    {writer?.name || "System"}
+                  </span>
+                </div>
                 <button
                   onClick={() => onMarkTrue(answer.id)}
                   disabled={isMarked}
@@ -86,17 +95,27 @@ export default function VotingPhase({
       </div>
 
       <div className="flex flex-col gap-3">
-        {answers.map((answer) => (
-          <button
-            key={answer.id}
-            onClick={() => onVote(answer.id)}
-            className="p-5 rounded-xl bg-gray-800 border-2 border-gray-700 hover:border-blue-500 hover:bg-gray-750 transition-all text-left group"
-          >
-            <p className="text-white text-lg font-medium leading-snug group-hover:text-blue-200 transition-colors italic">
-              "{answer.text}"
-            </p>
-          </button>
-        ))}
+        {answers
+          .filter((answer) => answer.id !== playerId)
+          .map((answer) => {
+            const writer = players[answer.id];
+            return (
+              <button
+                key={answer.id}
+                onClick={() => onVote(answer.id)}
+                className="p-5 rounded-xl bg-gray-800 border-2 border-gray-700 hover:border-blue-500 hover:bg-gray-750 transition-all text-left group flex flex-col gap-2"
+              >
+                <div className="flex justify-between items-start w-full">
+                  <p className="text-white text-lg font-medium leading-snug group-hover:text-blue-200 transition-colors italic">
+                    "{answer.text}"
+                  </p>
+                  <span className="text-[10px] font-bold text-gray-500 uppercase ml-2 shrink-0 group-hover:text-gray-400">
+                    {writer?.name || "System"}
+                  </span>
+                </div>
+              </button>
+            );
+          })}
       </div>
     </div>
   );

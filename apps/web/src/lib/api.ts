@@ -93,7 +93,9 @@ export function machineStateToPlayerViewState(
     const hasSubmittedLie = isExpert
       ? state.context.expertReady
       : currentRound.lies[playerId] !== undefined;
-    const hasVoted = currentRound.votes[playerId] !== undefined;
+    const hasVoted = isExpert
+      ? state.context.expertReady
+      : currentRound.votes[playerId] !== undefined;
 
     // Build answers list if we have shuffled ids
     let answers: { id: string; text: string }[] = [];
@@ -106,11 +108,16 @@ export function machineStateToPlayerViewState(
       });
     }
 
+    const mySubmission = isExpert
+      ? currentRound.article.summary
+      : currentRound.lies[playerId];
+
     return {
       ...response,
       articleTitle: currentRound.article.title,
       currentArticle: isExpert ? currentRound.article : undefined,
       isExpert,
+      mySubmission,
       answers,
       hasSubmittedLie,
       hasVoted,

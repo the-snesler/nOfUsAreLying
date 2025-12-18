@@ -4,18 +4,21 @@ import PhaseProgress from "../components/PhaseProgress";
 interface VotingPhaseProps {
   players: Record<string, Player>;
   currentRound?: Round;
+  expertReady: boolean;
 }
 
 export default function VotingPhase({
   players,
   currentRound,
+  expertReady,
 }: VotingPhaseProps) {
   if (!currentRound) return null;
 
   const playerStatus = Object.keys(players).reduce(
     (acc, playerId) => {
-      if (playerId === currentRound.targetPlayerId) {
-        acc[playerId] = "ready"; // Expert doesn't vote
+      const isExpert = playerId === currentRound.targetPlayerId;
+      if (isExpert) {
+        acc[playerId] = expertReady ? "voted" : "waiting";
       } else {
         const hasVoted = currentRound.votes[playerId] !== undefined;
         acc[playerId] = hasVoted ? "voted" : "waiting";
